@@ -4,14 +4,67 @@
   become: yes
   tasks:
 
-   - name: install tree
-     yum:
-      name: tree
-      state: present 
-     when: ansible_distribution == "CentOS"
-      
-   - name: install tree
-     apt:
-      name: tree
-      state: present
-     when: ansible_distribution == "Ubuntu"
+  - name: update server
+    yum:
+     name: "*"
+     state: latest
+    when: ansible_distribution == "CentOS"
+ 
+  - name: update server
+    apt:
+      name: "*"
+      state: latest
+    when: ansible_distribution == "Ubuntu"
+
+  - name: install apache packages
+    yum:
+     name: httpd 
+     state: latest
+    become: yes
+    when: ansible_distribution == "CentOS"
+
+  - name: create file index.tml
+    file:
+       path: /var/www/html/index.html
+       owner: root
+       state: touch
+       mode: "0777"
+  - name: creating a file with content
+    copy:
+      dest: "/var/www/html/index.html"
+      content: |
+         hello world
+         pls work
+    become: yes
+    when: ansible_distribution == "CentOS"
+
+  - name: web firewall rule
+    firewalld:
+      zone: public
+      port: 80/tcp
+      permanent: yes
+      state: enabled
+    when: ansible_distribution == "CentOS"
+
+  - name: install apache2
+    apt:
+     name: apache2
+     state: latest
+    become: yes
+    when: ansible_distribution == "Ubuntu"
+
+  - name: restart apache
+    service:
+      name: httpd
+      state: restarted
+      enabled: yes
+    when: ansible_distribution == "CentOS"
+    become: yes
+
+  - name: restart apache2
+    service:
+     name: apache2
+     state: restarted
+     enabled: yes
+    when: ansible_distribution == "Ubuntu"
+    become: yes
